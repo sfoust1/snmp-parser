@@ -80,7 +80,7 @@ public class MibParser {
             		String name = matcher.group(1);
             		String referenceName = matcher.group(2);
             		String index = matcher.group(3);
-            		mibObjects.put(name, new MibIdentifier(MibType.Root, name, referenceName, index));
+            		mibObjects.put(name, new MibIdentifier(MibType.ROOT, name, referenceName, index));
             		break;
             	case SEQUENCE:
             		MibSequence parsedSequence = getParsedSequenceType(br, count);
@@ -143,14 +143,30 @@ public class MibParser {
 				currentPattern = (ObjectTypeEnums) match.first;
 				Matcher matcher = match.second;
 				
+				String syntax;
 				switch(currentPattern) {
 				case SYNTAX_ONLY:
-					// This can be an entry, index, integer, or string
-					mib.setSyntax(matcher.group(1));
+					// This can be an entry, integer, or string
+					syntax = matcher.group(1);
+					mib.setSyntax(syntax);
+					
+					try {
+						// This will catch a string or integer.
+						mib.setType(MibType.valueOf(syntax));
+					} catch (IllegalArgumentException e) {
+						mib.setType(MibType.ATTRIBUTE_ENTRY);
+					}
+					
 					break;
 				case SYNTAX_ARRAY:
 					// Same as SYNTAX_ONLY except that it has a list of valid values
-					mib.setSyntax(matcher.group(1));
+					syntax = matcher.group(1);
+					mib.setSyntax(syntax);
+					try {
+						mib.setType(MibType.valueOf(syntax));
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					}
 					
 					// Read value lines until we hit a }. That line may or may not include a value.
 					line = br.readLine();
@@ -161,26 +177,29 @@ public class MibParser {
 						if (!valueMatch.isEmpty()) {
 							mib.addValidValue(valueMatch.second.group(1));
 						}
-					} while ((line = br.readLine()) != null && !line.contains("}"));
+						
+						if (line.contains("}")) break;
+					} while ((line = br.readLine()) != null);
 					break;
 				case SYNTAX_SEQUENCE:
 					// This value will be a table entry
 					mib.setSyntax(matcher.group(1));
-					mib.setType(MibType.Table);
+					mib.setType(MibType.TABLE);
 					break;
 				case MAX_ACCESS:
 					mib.setMaxAccess(matcher.group(1));
 					break;
 				case STATUS:
-					mib.setMaxAccess(matcher.group(1));
+					mib.setStatus(matcher.group(1));
 					break;
 				case INDEX:
-					mib.setIndex(matcher.group(1));
+					mib.setEntryIndexName(matcher.group(1));
+					mib.setType(MibType.ATTRIBUTE_ENTRY);
 					break;
 				case LINKED_MO:
 					// This will be the last one
 					mib.setReferenceName(matcher.group(1));
-					mib.setReferenceName(matcher.group(2));
+					mib.setIndex(matcher.group(2));
 					break;
 				default:
 					LOGGER.debug("Treating line " + String.valueOf(currentCount) +

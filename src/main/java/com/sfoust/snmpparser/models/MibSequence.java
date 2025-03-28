@@ -9,7 +9,7 @@ public class MibSequence extends MibIdentifier {
 	private List<String> mibObjects = new ArrayList<>();
 	
 	public MibSequence() {
-		this.setType(MibType.Sequence);
+		this.setType(MibType.SEQUENCE);
 	}
 	
 	public List<String> getMibObjects() {

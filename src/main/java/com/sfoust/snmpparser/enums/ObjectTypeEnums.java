@@ -7,8 +7,8 @@ public enum ObjectTypeEnums implements PatternEnumsInterface {
 	MAX_ACCESS("\\s*MAX-ACCESS\\s+([a-zA-Z0-9\\-]+)($|\\s+)"),
 	STATUS("\\s*STATUS\\s+([a-zA-Z0-9]+)($|\\s+)"),
 	INDEX("\\s*INDEX\\s+\\{\\s+([a-zA-Z0-9]+)\\s+\\}($|\\s+)"),
-	LINKED_MO("\\s*::= \\{\\s+([a-zA-Z0-9]+)\\s+([0-9])\\s+\\}($|\\s+)"),
-	VALID_VALUE(".+\\((\\w+)[\\),]+($|\\s+)");
+	LINKED_MO("\\s*::=\\s+\\{\\s+([a-zA-Z0-9]+)\\s+([0-9]+)\\s+\\}($|\\s+)"),
+	VALID_VALUE(".+\\((\\w+)\\),?\\s*}?($|\\s+)");
 	
 	private String pattern;
 	

@@ -85,9 +85,9 @@ public class PatternFactoryTest {
 				Arguments.of("INDEX { testProxy1AttributeIdx }", ObjectTypeEnums.INDEX, "testProxy1AttributeIdx"),
 				Arguments.of("      INDEX { testProxy1AttributeIdx }", ObjectTypeEnums.INDEX, "testProxy1AttributeIdx"),
 				Arguments.of("		INDEX { testProxy1AttributeIdx }", ObjectTypeEnums.INDEX, "testProxy1AttributeIdx"),
-				Arguments.of("false(2)", ObjectTypeEnums.VALID_VALUE, "2"),
-				Arguments.of("      false(2)", ObjectTypeEnums.VALID_VALUE, "2"),
-				Arguments.of("		false(2)", ObjectTypeEnums.VALID_VALUE, "2"),
+				Arguments.of("false(2) }", ObjectTypeEnums.VALID_VALUE, "2"),
+				Arguments.of("      false(2) }", ObjectTypeEnums.VALID_VALUE, "2"),
+				Arguments.of("		false(2) }", ObjectTypeEnums.VALID_VALUE, "2"),
 				Arguments.of("true(1),", ObjectTypeEnums.VALID_VALUE, "1"),
 				Arguments.of("      true(1),", ObjectTypeEnums.VALID_VALUE, "1"),
 				Arguments.of("		true(1),", ObjectTypeEnums.VALID_VALUE, "1"),
@@ -111,10 +111,10 @@ public class PatternFactoryTest {
 	
 	@Test
 	public void testLinkedMoFound() {
-		String line = "::= { testProxy1AttributeEntry 1 }";
+		String line = "    ::= { testProxy1AttributeEntry 54 }";
 		ObjectTypeEnums expectedEnum = ObjectTypeEnums.LINKED_MO;
 		String expectedReferenceName = "testProxy1AttributeEntry";
-		String expectedIndex = "1";
+		String expectedIndex = "54";
 		
 		PatternFactory factory = new PatternFactory();
 		Pair<PatternEnumsInterface, Matcher> match = factory.getObjectTypeData(line);
@@ -137,8 +137,9 @@ public class PatternFactoryTest {
 	
 	static Stream<Arguments> sequenceTypeTestProvider() {
 		return Stream.of(
-				// Found
 				Arguments.of("performAction INTEGER", SequenceTypeEnums.INTEGER, "performAction"),
+				Arguments.of("      performAction INTEGER", SequenceTypeEnums.INTEGER, "performAction"),
+				Arguments.of("		performAction INTEGER", SequenceTypeEnums.INTEGER, "performAction"),
 				Arguments.of("performAction INTEGER,", SequenceTypeEnums.INTEGER, "performAction")
 				);
 	}
