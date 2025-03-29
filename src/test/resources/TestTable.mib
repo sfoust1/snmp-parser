@@ -1,0 +1,71 @@
+TEST-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    OBJECT-TYPE, Unsigned32
+        FROM SNMPv2-SMI
+    DisplayString
+        FROM SNMPv2-TC;
+
+-- Root of data. An OID that is often registered with the IANA (www.iana.org)
+
+testRoot    OBJECT IDENTIFIER ::= { enterprises 100 }
+
+testProxy   OBJECT IDENTIFIER ::= { testRoot 20 }
+-- testComm    OBJECT IDENTIFIER ::= { testRoot 60 }
+-- testSync    OBJECT IDENTIFIER ::= { testRoot 80 }
+
+testProxy1 OBJECT IDENTIFIER ::= { testProxy 1 }
+
+-- MAX-ACCESS can be read-only, read-write, write-only, not-accessible
+-- STATUS can be current, mandatory, deprecated
+
+testProxy1AttributeTable OBJECT-TYPE
+-- Array of that type
+    SYNTAX SEQUENCE OF TestProxy1AttributeEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Some multi line comment describing
+        what this table is"
+    ::= { testProxy1 1 }
+
+testProxy1AttributeEntry OBJECT-TYPE
+    SYNTAX TestProxy1AttributeEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Describes what an entry at this location in the table looks like"
+-- An index is a way to identify how to find an entry in a table.
+-- It can be a single identifier (<OID>.1), or it can be a nested set of identifiers (<OID>.1.3.5).
+-- In this case, the testProxy1Idx has no children identifiers, testProxy1Idx IS the object
+    INDEX { testProxy1AttributeIdx }
+-- These always point to 1....
+    ::= { testProxy1AttributeTable 1 }
+
+testProxy1AttributeIdx OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Index in the table. Allows for multiple entries of the testProxy1AttributeEntry.
+        Goes onto the end of an OID, but might not be done by me, might be done after creating the whole table."
+    ::= { testProxy1AttributeEntry 1 }
+
+TestProxy1AttributeEntry ::= SEQUENCE {
+        -- We are saying this value that is addressed through the testProxy table means we are to perform some action
+        -- And this value is an integer type. Sometimes, this can be multiple values with commas and newlines
+        performAction INTEGER
+    }
+
+performAction OBJECT-TYPE
+    SYNTAX INTEGER {
+        true(1),
+        false(2) }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "The INTEGER array is essentially a named enum. True/false is there, but it can be any string and the number represents it"
+-- Notice we aren't pointing to the index. The index is every object within INDEX defined entry. This is just a single value
+    ::= { testProxy1AttributeEntry 54 }
+ 
+END
