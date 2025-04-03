@@ -6,8 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,6 +20,7 @@ import com.sfoust.snmpparser.enums.PatternEnumsInterface;
 import com.sfoust.snmpparser.models.MibIdentifier;
 import com.sfoust.snmpparser.models.MibObject;
 import com.sfoust.snmpparser.models.MibSequence;
+import com.sfoust.snmpparser.models.MibTree;
 
 public class MibParser {
 	private static final Logger LOGGER = LogManager.getLogger(MibParser.class);
@@ -32,33 +31,34 @@ public class MibParser {
 		factory = new PatternFactory();
 	}
 	
-	public Map<String, MibIdentifier> getMibObjects(InputStream is) {
+	public MibTree getMibTree(InputStream is, String parentMibName, String parentFullOid) {
 		InputStreamReader in = new InputStreamReader(is);
 		BufferedReader br = new BufferedReader(in);
 		
-		return getMibObjects(br);
+		return getMibTree(parentMibName, parentFullOid, br);
 	}
-
-    public Map<String, MibIdentifier> getMibObjects(String filePath) {
-    	Map<String, MibIdentifier> mibObjects = new HashMap<>();
+	
+	public MibTree getMibTree(String filePath, String parentMibName, String parentFullOid) {
+    	MibTree mibTree = null;
     	
     	try {
 			BufferedReader br = new BufferedReader(new FileReader(filePath));
-			mibObjects = getMibObjects(br);
+			mibTree = getMibTree(parentMibName, parentFullOid, br);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
     	
-    	return mibObjects;
-    }
-    
-    /**
-     * Parse Mibs from reader and place each object type into a map that will later be
-     * further parsed into groups 
-     * @return Map<String, MibObject>
-     */
-    public Map<String, MibIdentifier> getMibObjects(BufferedReader br) {
-    	Map<String, MibIdentifier> mibObjects = new HashMap<>();
+    	return mibTree;
+	}
+	
+	/**
+	 * 
+	 * @param parentMib The mib that all of the files mibs belong to, like enterprises 1.3.6.1.4.1
+	 * @param filePath
+	 * @return
+	 */
+	public MibTree getMibTree(String parentMibName, String parentFullOid, BufferedReader br) {
+		MibTree mibTree = new MibTree(parentMibName, parentFullOid);
     	
     	String line = "-1";
     	Integer count = 0;
@@ -80,17 +80,17 @@ public class MibParser {
             		String name = matcher.group(1);
             		String referenceName = matcher.group(2);
             		String index = matcher.group(3);
-            		mibObjects.put(name, new MibIdentifier(MibType.ROOT, name, referenceName, index));
+            		mibTree.addChildTree(new MibIdentifier(MibType.ROOT, name, referenceName, index));
             		break;
             	case SEQUENCE:
             		MibSequence parsedSequence = getParsedSequenceType(br, count);
             		parsedSequence.setName(matcher.group(1));
-            		mibObjects.put(parsedSequence.getName(), parsedSequence);
+            		mibTree.addMibSequence(parsedSequence);
             		break;
             	case OBJECT:
             		MibObject parsedObject = getParsedObjectType(br, count);
             		parsedObject.setName(matcher.group(1));
-            		mibObjects.put(parsedObject.getName(), parsedObject);
+            		mibTree.addChildTree(parsedObject);
             		break;
             	}
             }
@@ -102,9 +102,10 @@ public class MibParser {
         catch (IOException e) {
             e.printStackTrace();
         }
-        
-        return mibObjects;
-    }
+		
+		return mibTree;
+	}
+	
     
     public MibSequence getParsedSequenceType(BufferedReader br, Integer currentCount) {
     	MibSequence mib = new MibSequence();
@@ -199,7 +200,7 @@ public class MibParser {
 				case LINKED_MO:
 					// This will be the last one
 					mib.setReferenceName(matcher.group(1));
-					mib.setIndex(matcher.group(2));
+					mib.setIdentifierNumber(matcher.group(2));
 					break;
 				default:
 					LOGGER.debug("Treating line " + String.valueOf(currentCount) +

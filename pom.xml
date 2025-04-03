@@ -8,7 +8,7 @@
     <relativePath/>
   </parent>
 	
-  <groupId>snmp-parser</groupId>
+  <groupId>com.sfoust</groupId>
   <artifactId>snmp-parser</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>snmp-parser</name>
